@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/components/auth-provider";
 import { useData } from "@/components/data-provider";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { CalendarGrid } from "./calendar-grid";
 import { AgendaPanel } from "./agenda-panel";
 import { FiltersBar } from "./filters-bar";
@@ -69,6 +70,14 @@ export function CalendarPage() {
   const [notifPermission, setNotifPermission] = useState<NotificationPermission | "unsupported">(
     typeof window !== "undefined" && "Notification" in window ? Notification.permission : "unsupported"
   );
+
+  // Only render browser-capability-dependent UI after mount so server and
+  // client markup match (avoids touching `window` during render/hydration).
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
+  }, []);
 
   const monthLabel = useMemo(
     () =>
@@ -214,7 +223,9 @@ export function CalendarPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          {"Notification" in window && notifPermission !== "unsupported" && (
+          <ThemeToggle />
+
+          {mounted && notifPermission !== "unsupported" && (
             <Button
               variant="outline"
               size="sm"
@@ -320,6 +331,23 @@ export function CalendarPage() {
             activeCategoryIds={activeCategoryIds}
             onToggleCategory={handleToggleCategory}
           />
+
+          {events.length === 0 && (
+            <div className="mb-4 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl border border-dashed border-line bg-panel px-4 py-3 font-mono text-xs text-muted-foreground">
+              <span>Welcome to your ledger.</span>
+              <span>
+                Press{" "}
+                <kbd className="rounded-md border border-line bg-background px-1.5 py-0.5 text-[11px] text-foreground">
+                  N
+                </kbd>{" "}
+                to add an event, or{" "}
+                <kbd className="rounded-md border border-line bg-background px-1.5 py-0.5 text-[11px] text-foreground">
+                  ⌘K
+                </kbd>{" "}
+                for the command palette.
+              </span>
+            </div>
+          )}
 
           <main className="grid flex-1 gap-6 lg:grid-cols-[1.6fr_1fr] lg:items-start">
         <section className="rounded-2xl border-2 border-foreground bg-card p-5 shadow-sm">

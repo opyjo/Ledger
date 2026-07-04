@@ -91,6 +91,48 @@
   --ink-soft: #5A6478;
 }
 
+.dark {
+  --background: #10151F;
+  --foreground: #E7E1D3;
+  --card: #161D2B;
+  --card-foreground: #E7E1D3;
+  --popover: #161D2B;
+  --popover-foreground: #E7E1D3;
+  --primary: #E7E1D3;
+  --primary-foreground: #10151F;
+  --secondary: #1F2836;
+  --secondary-foreground: #E7E1D3;
+  --muted: #1F2836;
+  --muted-foreground: #9AA2B2;
+  --accent: #1F2836;
+  --accent-foreground: #E7E1D3;
+  --destructive: #CF5C4E;
+  --border: #2A3346;
+  --input: #2A3346;
+  --ring: #E7E1D3;
+  --chart-1: #8FA1C2;
+  --chart-2: #4E9B8C;
+  --chart-3: #D8AC50;
+  --chart-4: #CF5C4E;
+  --chart-5: #9AA2B2;
+  --sidebar: #10151F;
+  --sidebar-foreground: #E7E1D3;
+  --sidebar-primary: #E7E1D3;
+  --sidebar-primary-foreground: #10151F;
+  --sidebar-accent: #1F2836;
+  --sidebar-accent-foreground: #E7E1D3;
+  --sidebar-border: #2A3346;
+  --sidebar-ring: #E7E1D3;
+  --ink: #E7E1D3;
+  --paper: #10151F;
+  --panel: #1F2836;
+  --amber: #D8AC50;
+  --teal: #4E9B8C;
+  --rust: #CF5C4E;
+  --line: #2A3346;
+  --ink-soft: #9AA2B2;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

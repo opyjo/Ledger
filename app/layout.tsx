@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Fraunces, IBM_Plex_Mono } from "next/font/google";
 import { AuthProvider } from "@/components/auth-provider";
+import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
@@ -32,7 +33,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#1B2A4A",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#F6F4EF" },
+    { media: "(prefers-color-scheme: dark)", color: "#10151F" },
+  ],
   width: "device-width",
   initialScale: 1,
 };
@@ -45,13 +49,21 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={`${inter.variable} ${fraunces.variable} ${ibmPlexMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col font-sans">
-        <AuthProvider>
-          {children}
-          <Toaster position="bottom-center" />
-        </AuthProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <AuthProvider>
+            {children}
+            <Toaster position="bottom-center" />
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
