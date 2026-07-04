@@ -6,11 +6,7 @@ import {
   setDoc,
   deleteDoc,
   onSnapshot,
-  query,
-  where,
-  getDoc,
   writeBatch,
-  Timestamp,
 } from "firebase/firestore";
 import { db } from "./firebase";
 import type { Category, Event, Settings } from "./types";
@@ -37,44 +33,68 @@ export function categoryDocRef(userId: string, categoryId: string) {
 
 export function subscribeToSettings(
   userId: string,
-  callback: (settings: Settings) => void
+  callback: (settings: Settings) => void,
+  onError?: (error: Error) => void
 ) {
   const ref = settingsDocRef(userId);
-  return onSnapshot(ref, (snap) => {
-    if (snap.exists()) {
-      callback(snap.data() as Settings);
-    } else {
-      callback({ sound: true, defaultReminder: 10 });
+  return onSnapshot(
+    ref,
+    (snap) => {
+      if (snap.exists()) {
+        callback(snap.data() as Settings);
+      } else {
+        callback({ sound: true, defaultReminder: 10 });
+      }
+    },
+    (error) => {
+      console.error("[firestore] settings listener error:", error);
+      onError?.(error);
     }
-  });
+  );
 }
 
 export function subscribeToCategories(
   userId: string,
-  callback: (categories: Category[]) => void
+  callback: (categories: Category[]) => void,
+  onError?: (error: Error) => void
 ) {
   const ref = categoriesCollectionRef(userId);
-  return onSnapshot(ref, (snap) => {
-    const categories = snap.docs.map((d) => ({
-      id: d.id,
-      ...d.data(),
-    })) as Category[];
-    callback(categories);
-  });
+  return onSnapshot(
+    ref,
+    (snap) => {
+      const categories = snap.docs.map((d) => ({
+        id: d.id,
+        ...d.data(),
+      })) as Category[];
+      callback(categories);
+    },
+    (error) => {
+      console.error("[firestore] categories listener error:", error);
+      onError?.(error);
+    }
+  );
 }
 
 export function subscribeToEvents(
   userId: string,
-  callback: (events: Event[]) => void
+  callback: (events: Event[]) => void,
+  onError?: (error: Error) => void
 ) {
   const ref = eventsCollectionRef(userId);
-  return onSnapshot(ref, (snap) => {
-    const events = snap.docs.map((d) => ({
-      id: d.id,
-      ...d.data(),
-    })) as Event[];
-    callback(events);
-  });
+  return onSnapshot(
+    ref,
+    (snap) => {
+      const events = snap.docs.map((d) => ({
+        id: d.id,
+        ...d.data(),
+      })) as Event[];
+      callback(events);
+    },
+    (error) => {
+      console.error("[firestore] events listener error:", error);
+      onError?.(error);
+    }
+  );
 }
 
 export async function saveSettings(userId: string, settings: Settings) {

@@ -71,10 +71,18 @@ export function DataProvider({
         }
       setCategories(cats.length ? cats : DEFAULT_CATEGORIES);
     });
-    const unsubEvents = subscribeToEvents(userId, (evs) => {
-      setEvents(evs);
-      setLoading(false);
-    });
+    const unsubEvents = subscribeToEvents(
+      userId,
+      (evs) => {
+        setEvents(evs);
+        setLoading(false);
+      },
+      () => {
+        // Don't leave the UI stuck on the loading skeleton if the events
+        // listener fails (denied rules, offline, missing database, etc.).
+        setLoading(false);
+      }
+    );
 
     return () => {
       unsubSettings();

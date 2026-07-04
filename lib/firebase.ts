@@ -2,7 +2,12 @@
 
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import {
+  getFirestore,
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
+} from "firebase/firestore";
 import { getAnalytics, isSupported } from "firebase/analytics";
 
 const firebaseConfig = {
@@ -15,10 +20,24 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+const existingApp = getApps().length > 0;
+const app = existingApp ? getApp() : initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
-export const db = getFirestore(app);
+
+// Configure Firestore on first init only. Re-imports (HMR) reuse the already
+// started instance via getFirestore.
+// - persistentLocalCache: IndexedDB offline cache (PWA support, fewer reads).
+// - experimentalAutoDetectLongPolling: fall back to long-polling when the
+//   streaming WebChannel is blocked by ad blockers / corporate proxies.
+export const db = existingApp
+  ? getFirestore(app)
+  : initializeFirestore(app, {
+      localCache: persistentLocalCache({
+        tabManager: persistentMultipleTabManager(),
+      }),
+      experimentalAutoDetectLongPolling: true,
+    });
 export const googleProvider = new GoogleAuthProvider();
 
 export const analytics =
