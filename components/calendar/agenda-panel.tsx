@@ -2,7 +2,7 @@
 
 import { Bell, Pencil } from "lucide-react";
 import { useData } from "@/components/data-provider";
-import { eventsForDay, categoryById, formatDate } from "@/lib/recurrence";
+import { eventsForDay, categoryById } from "@/lib/recurrence";
 import { Button } from "@/components/ui/button";
 
 interface AgendaPanelProps {
@@ -81,7 +81,8 @@ export function AgendaPanel({ selectedDate, onAddEvent, onEditEvent, searchQuery
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-7 w-7 opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+                  aria-label={`Edit ${ev.title}`}
+                  className="h-7 w-7 opacity-60 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
                   onClick={() => onEditEvent(ev.id)}
                 >
                   <Pencil className="h-3.5 w-3.5" />

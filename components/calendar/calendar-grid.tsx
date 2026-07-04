@@ -86,7 +86,7 @@ export function CalendarGrid({
               >
                 {day.getDate()}
               </span>
-              <div className="flex flex-wrap gap-1">
+              <div className="flex flex-wrap items-center gap-1">
                 {dayEvents.slice(0, 4).map((ev) => {
                   const cat = categoryById(categories, ev.categoryId);
                   return (
@@ -97,6 +97,11 @@ export function CalendarGrid({
                     />
                   );
                 })}
+                {dayEvents.length > 4 && (
+                  <span className="font-mono text-[9px] leading-none text-muted-foreground sm:text-[10px]">
+                    +{dayEvents.length - 4}
+                  </span>
+                )}
               </div>
             </button>
           );

@@ -11,8 +11,9 @@ import {
   LogOut,
   Bell,
   BellOff,
+  MoreHorizontal,
 } from "lucide-react";
-import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, isSameDay } from "date-fns";
+import { startOfMonth, endOfMonth, startOfWeek, endOfWeek } from "date-fns";
 
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -20,6 +21,8 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/components/auth-provider";
@@ -36,7 +39,7 @@ import { EventForm } from "./event-form";
 import { SettingsModal } from "./settings-modal";
 import { MigrationDialog } from "./migration-dialog";
 import { ReminderChecker } from "./reminder-checker";
-import { eventsForDay, formatDate } from "@/lib/recurrence";
+import { formatDate } from "@/lib/recurrence";
 import { exportBackup, readBackupFile, migrateLegacyBackup } from "@/lib/backup";
 import { exportEventsToIcs, parseIcsEvents } from "@/lib/ics";
 import type { Event } from "@/lib/types";
@@ -66,8 +69,6 @@ export function CalendarPage() {
   const [notifPermission, setNotifPermission] = useState<NotificationPermission | "unsupported">(
     typeof window !== "undefined" && "Notification" in window ? Notification.permission : "unsupported"
   );
-
-  const today = new Date();
 
   const monthLabel = useMemo(
     () =>
@@ -236,22 +237,7 @@ export function CalendarPage() {
             </Button>
           )}
 
-          <Button variant="outline" size="sm" onClick={handleExport} className="rounded-lg border-line text-xs">
-            <Download className="mr-1.5 h-3.5 w-3.5" /> Export
-          </Button>
-
-          <Button variant="outline" size="sm" onClick={handleImportTrigger} className="rounded-lg border-line text-xs">
-            <Upload className="mr-1.5 h-3.5 w-3.5" /> Import
-          </Button>
-
-          <Button variant="outline" size="sm" onClick={handleExportIcs} className="rounded-lg border-line text-xs">
-            <Download className="mr-1.5 h-3.5 w-3.5" /> ICS
-          </Button>
-
-          <Button variant="outline" size="sm" onClick={handleImportIcsTrigger} className="rounded-lg border-line text-xs">
-            <Upload className="mr-1.5 h-3.5 w-3.5" /> ICS
-          </Button>
-
+          {/* Hidden file inputs for JSON + ICS import, triggered from the menu */}
           <input
             ref={fileInputRef}
             type="file"
@@ -259,7 +245,6 @@ export function CalendarPage() {
             onChange={handleImportFile}
             className="hidden"
           />
-
           <input
             ref={icsInputRef}
             type="file"
@@ -268,9 +253,38 @@ export function CalendarPage() {
             className="hidden"
           />
 
-          <Button variant="outline" size="sm" onClick={() => setSettingsOpen(true)} className="rounded-lg border-line text-xs">
-            <Settings className="mr-1.5 h-3.5 w-3.5" /> Settings
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger>
+              <Button variant="outline" size="sm" className="rounded-lg border-line text-xs">
+                <MoreHorizontal className="mr-1.5 h-3.5 w-3.5" /> More
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-60">
+              <DropdownMenuLabel className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+                Backup
+              </DropdownMenuLabel>
+              <DropdownMenuItem onClick={handleExport} className="text-xs">
+                <Download className="mr-2 h-3.5 w-3.5" /> Export backup (.json)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleImportTrigger} className="text-xs">
+                <Upload className="mr-2 h-3.5 w-3.5" /> Import backup (.json)
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+                Calendar file
+              </DropdownMenuLabel>
+              <DropdownMenuItem onClick={handleExportIcs} className="text-xs">
+                <Download className="mr-2 h-3.5 w-3.5" /> Export calendar (.ics)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleImportIcsTrigger} className="text-xs">
+                <Upload className="mr-2 h-3.5 w-3.5" /> Import calendar (.ics)
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => setSettingsOpen(true)} className="text-xs">
+                <Settings className="mr-2 h-3.5 w-3.5" /> Settings
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           <DropdownMenu>
             <DropdownMenuTrigger>
