@@ -11,6 +11,7 @@ export interface Event {
   userId: string;
   title: string;
   date: string; // ISO date YYYY-MM-DD
+  allDay?: boolean;
   time?: string; // HH:MM
   endTime?: string; // HH:MM
   recurrence: Recurrence;
@@ -38,6 +39,7 @@ export interface LegacyEvent {
   id: string;
   title: string;
   date: string;
+  allDay?: boolean;
   time?: string;
   endTime?: string;
   recurrence: Recurrence;

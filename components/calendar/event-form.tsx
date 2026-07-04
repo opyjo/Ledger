@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -26,6 +27,7 @@ const REMINDER_OPTIONS = [0, 5, 10, 30, 60, 1440];
 const formSchema = z.object({
   title: z.string().min(1, "Title is required"),
   date: z.string().min(1, "Date is required"),
+  allDay: z.boolean(),
   time: z.string().optional(),
   endTime: z.string().optional(),
   recurrence: z.enum(["none", "daily", "weekly", "monthly", "yearly"]),
@@ -57,6 +59,7 @@ export function EventForm({ open, onOpenChange, selectedDate, editingEventId }: 
     defaultValues: {
       title: "",
       date: formatDate(selectedDate),
+      allDay: false,
       time: "",
       endTime: "",
       recurrence: "none",
@@ -71,6 +74,7 @@ export function EventForm({ open, onOpenChange, selectedDate, editingEventId }: 
         form.reset({
           title: editingEvent.title,
           date: editingEvent.date,
+          allDay: editingEvent.allDay || false,
           time: editingEvent.time || "",
           endTime: editingEvent.endTime || "",
           recurrence: editingEvent.recurrence,
@@ -83,6 +87,7 @@ export function EventForm({ open, onOpenChange, selectedDate, editingEventId }: 
         form.reset({
           title: "",
           date: formatDate(selectedDate),
+          allDay: false,
           time: "",
           endTime: "",
           recurrence: "none",
@@ -111,8 +116,9 @@ export function EventForm({ open, onOpenChange, selectedDate, editingEventId }: 
       userId: editingEvent?.userId || "",
       title: values.title,
       date: values.date,
-      time: values.time || undefined,
-      endTime: values.endTime || undefined,
+      allDay: values.allDay,
+      time: values.allDay ? undefined : values.time || undefined,
+      endTime: values.allDay ? undefined : values.endTime || undefined,
       recurrence: values.recurrence as Recurrence,
       until: values.until || undefined,
       categoryId: selectedCategoryId,
@@ -130,8 +136,14 @@ export function EventForm({ open, onOpenChange, selectedDate, editingEventId }: 
 
   const handleDelete = () => {
     if (!editingEvent) return;
+    const deletedEvent = { ...editingEvent };
     deleteEvent(editingEvent.id).then(() => {
-      toast("Event deleted.");
+      toast("Event deleted.", {
+        action: {
+          label: "Undo",
+          onClick: () => saveEvent(deletedEvent),
+        },
+      });
       onOpenChange(false);
     });
   };
@@ -156,6 +168,17 @@ export function EventForm({ open, onOpenChange, selectedDate, editingEventId }: 
             )}
           </div>
 
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="allDay"
+              checked={form.watch("allDay")}
+              onCheckedChange={(checked) => form.setValue("allDay", checked === true)}
+            />
+            <Label htmlFor="allDay" className="text-sm font-normal">
+              All day
+            </Label>
+          </div>
+
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
               <Label htmlFor="date" className="text-xs uppercase tracking-wider text-muted-foreground">
@@ -163,23 +186,26 @@ export function EventForm({ open, onOpenChange, selectedDate, editingEventId }: 
               </Label>
               <Input id="date" type="date" {...form.register("date")} className="mt-1 rounded-lg" />
             </div>
-            <div>
-              <Label htmlFor="time" className="text-xs uppercase tracking-wider text-muted-foreground">
-                Start time
-              </Label>
-              <Input id="time" type="time" {...form.register("time")} className="mt-1 rounded-lg" />
-            </div>
+            {!form.watch("allDay") && (
+              <div>
+                <Label htmlFor="time" className="text-xs uppercase tracking-wider text-muted-foreground">
+                  Start time
+                </Label>
+                <Input id="time" type="time" {...form.register("time")} className="mt-1 rounded-lg" />
+              </div>
+            )}
           </div>
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div>
-              <Label htmlFor="endTime" className="text-xs uppercase tracking-wider text-muted-foreground">
-                End time
-              </Label>
-              <Input id="endTime" type="time" {...form.register("endTime")} className="mt-1 rounded-lg" />
-            </div>
-            <div>
-              <Label className="text-xs uppercase tracking-wider text-muted-foreground">Repeats</Label>
+          {!form.watch("allDay") && (
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div>
+                <Label htmlFor="endTime" className="text-xs uppercase tracking-wider text-muted-foreground">
+                  End time
+                </Label>
+                <Input id="endTime" type="time" {...form.register("endTime")} className="mt-1 rounded-lg" />
+              </div>
+              <div>
+                <Label className="text-xs uppercase tracking-wider text-muted-foreground">Repeats</Label>
               <Select
                 value={form.watch("recurrence")}
                 onValueChange={(v) => form.setValue("recurrence", v as Recurrence)}
@@ -197,6 +223,7 @@ export function EventForm({ open, onOpenChange, selectedDate, editingEventId }: 
               </Select>
             </div>
           </div>
+          )}
 
           {recurrence !== "none" && (
             <div>

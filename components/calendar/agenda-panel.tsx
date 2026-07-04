@@ -9,6 +9,8 @@ interface AgendaPanelProps {
   selectedDate: Date;
   onAddEvent: () => void;
   onEditEvent: (id: string) => void;
+  searchQuery: string;
+  activeCategoryIds: string[];
 }
 
 function fmtDayHeading(d: Date) {
@@ -19,11 +21,22 @@ function fmtDayHeading(d: Date) {
   });
 }
 
-export function AgendaPanel({ selectedDate, onAddEvent, onEditEvent }: AgendaPanelProps) {
+export function AgendaPanel({ selectedDate, onAddEvent, onEditEvent, searchQuery, activeCategoryIds }: AgendaPanelProps) {
   const { events, categories } = useData();
   const today = new Date();
   const isToday = selectedDate.toDateString() === today.toDateString();
-  const dayEvents = eventsForDay(events, selectedDate, categories);
+
+  const q = searchQuery.toLowerCase();
+  const filteredEvents = events.filter((ev) => {
+    const matchesCategory = activeCategoryIds.includes(ev.categoryId);
+    const matchesSearch =
+      !q ||
+      ev.title.toLowerCase().includes(q) ||
+      (ev.notes && ev.notes.toLowerCase().includes(q));
+    return matchesCategory && matchesSearch;
+  });
+
+  const dayEvents = eventsForDay(filteredEvents, selectedDate, categories);
 
   return (
     <section className="rounded-2xl border-2 border-foreground bg-card p-5 shadow-sm">
@@ -52,7 +65,7 @@ export function AgendaPanel({ selectedDate, onAddEvent, onEditEvent }: AgendaPan
                 <div className="min-w-0 flex-1">
                   <div className="font-semibold text-sm text-foreground">{ev.title}</div>
                   <div className="font-mono text-[11px] text-muted-foreground">
-                    {ev.time ? `${ev.time}${ev.endTime ? ` – ${ev.endTime}` : ""}` : "All day"}
+                    {ev.allDay || !ev.time ? "All day" : `${ev.time}${ev.endTime ? ` – ${ev.endTime}` : ""}`}
                     {ev.recurrence !== "none" && ` · repeats ${ev.recurrence}`}
                   </div>
                   {ev.notes && <div className="mt-1 text-xs text-muted-foreground">{ev.notes}</div>}
