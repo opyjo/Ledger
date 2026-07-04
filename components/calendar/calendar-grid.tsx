@@ -43,8 +43,8 @@ export function CalendarGrid({
   return (
     <div role="grid" aria-label="Calendar">
       <div role="row" className="grid grid-cols-7 gap-1.5">
-        {DOW.map((d) => (
-          <div key={d} role="columnheader" className="pb-1 text-center font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
+        {DOW.map((d, i) => (
+          <div key={i} role="columnheader" className="pb-1 text-center font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
             {d}
           </div>
         ))}

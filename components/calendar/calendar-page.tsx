@@ -266,10 +266,16 @@ export function CalendarPage() {
           />
 
           <DropdownMenu>
-            <DropdownMenuTrigger>
-              <Button variant="outline" size="sm" className="rounded-lg border-line text-xs">
-                <MoreHorizontal className="mr-1.5 h-3.5 w-3.5" /> More
-              </Button>
+            <DropdownMenuTrigger
+              render={
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="rounded-lg border-line text-xs"
+                />
+              }
+            >
+              <MoreHorizontal className="mr-1.5 h-3.5 w-3.5" /> More
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-60">
               <DropdownMenuGroup>
@@ -303,15 +309,15 @@ export function CalendarPage() {
           </DropdownMenu>
 
           <DropdownMenu>
-            <DropdownMenuTrigger>
-              <Button variant="ghost" size="sm" className="rounded-lg px-2">
-                <Avatar className="h-7 w-7">
-                  <AvatarImage src={user?.photoURL || undefined} alt={user?.displayName || "User"} />
-                  <AvatarFallback className="bg-foreground text-primary-foreground text-xs">
-                    {user?.displayName?.charAt(0) || "U"}
-                  </AvatarFallback>
-                </Avatar>
-              </Button>
+            <DropdownMenuTrigger
+              render={<Button variant="ghost" size="sm" className="rounded-lg px-2" />}
+            >
+              <Avatar className="h-7 w-7">
+                <AvatarImage src={user?.photoURL || undefined} alt={user?.displayName || "User"} />
+                <AvatarFallback className="bg-foreground text-primary-foreground text-xs">
+                  {user?.displayName?.charAt(0) || "U"}
+                </AvatarFallback>
+              </Avatar>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={logout} className="text-xs">
@@ -358,9 +364,9 @@ export function CalendarPage() {
         <section className="rounded-2xl border-2 border-foreground bg-card p-5 shadow-sm">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <YearPicker viewDate={viewDate} onChange={setViewDate}>
-              <button className="text-left font-serif text-2xl font-semibold text-foreground hover:opacity-70">
+              <span className="cursor-pointer text-left font-serif text-2xl font-semibold text-foreground hover:opacity-70">
                 {monthLabel}
-              </button>
+              </span>
             </YearPicker>
             <div className="flex items-center gap-1.5">
               <div className="flex rounded-lg border border-line p-0.5">
