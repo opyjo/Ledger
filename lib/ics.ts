@@ -1,6 +1,32 @@
 import ICAL from "ical.js";
+import { unzipSync, strFromU8 } from "fflate";
 import type { Event, Category, Recurrence } from "./types";
 import { parseLocalDate, formatDate, occurrencesInRange } from "./recurrence";
+
+/**
+ * Read a user-selected calendar file into one or more raw iCalendar strings.
+ * Accepts a plain `.ics` file, or a `.zip` (e.g. a Google Calendar export,
+ * which wraps one `.ics` per calendar). Detection is by the ZIP magic bytes
+ * ("PK\x03\x04") rather than the file extension, so a misnamed file still works.
+ */
+export async function extractIcsTexts(file: File): Promise<string[]> {
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  const isZip =
+    bytes.length >= 4 &&
+    bytes[0] === 0x50 &&
+    bytes[1] === 0x4b &&
+    bytes[2] === 0x03 &&
+    bytes[3] === 0x04;
+
+  if (!isZip) {
+    return [strFromU8(bytes)];
+  }
+
+  const entries = unzipSync(bytes);
+  return Object.entries(entries)
+    .filter(([name]) => name.toLowerCase().endsWith(".ics"))
+    .map(([, data]) => strFromU8(data));
+}
 
 function toIcsDateTime(dateStr: string, timeStr?: string): string {
   const d = parseLocalDate(dateStr);

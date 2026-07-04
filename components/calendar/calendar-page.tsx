@@ -43,7 +43,7 @@ import { MigrationDialog } from "./migration-dialog";
 import { ReminderChecker } from "./reminder-checker";
 import { formatDate } from "@/lib/recurrence";
 import { exportBackup, readBackupFile, migrateLegacyBackup } from "@/lib/backup";
-import { exportEventsToIcs, parseIcsEvents } from "@/lib/ics";
+import { exportEventsToIcs, parseIcsEvents, extractIcsTexts } from "@/lib/ics";
 import type { Event } from "@/lib/types";
 import { toast } from "sonner";
 
@@ -166,9 +166,18 @@ export function CalendarPage() {
     const file = e.target.files?.[0];
     if (!file) return;
     try {
-      const text = await file.text();
-      const parsed = parseIcsEvents(text, user?.uid || "");
+      // Accepts a raw .ics or a .zip (e.g. a Google Calendar export, which
+      // wraps one .ics per calendar). extractIcsTexts unwraps either.
+      const icsTexts = await extractIcsTexts(file);
+      if (icsTexts.length === 0) {
+        toast("No calendar (.ics) was found in that file.");
+        e.target.value = "";
+        return;
+      }
       const now = Date.now();
+      const parsed = icsTexts.flatMap((text) =>
+        parseIcsEvents(text, user?.uid || "")
+      );
       const evs: Event[] = parsed.map((p, idx) => ({
         id: `ics${now}${idx}`,
         userId: user?.uid || "",
@@ -186,9 +195,9 @@ export function CalendarPage() {
         updatedAt: now,
       }));
       await batchImport([], evs, settings);
-      toast(`${evs.length} event(s) imported from ICS.`);
+      toast(`${evs.length} event(s) imported.`);
     } catch {
-      toast("That ICS file couldn't be parsed.");
+      toast("That calendar file couldn't be read.");
     }
     e.target.value = "";
   };
@@ -260,7 +269,7 @@ export function CalendarPage() {
           <input
             ref={icsInputRef}
             type="file"
-            accept="text/calendar,.ics"
+            accept="text/calendar,.ics,.zip,application/zip"
             onChange={handleImportIcs}
             className="hidden"
           />
@@ -298,7 +307,7 @@ export function CalendarPage() {
                   <Download className="mr-2 h-3.5 w-3.5" /> Export calendar (.ics)
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleImportIcsTrigger} className="text-xs">
-                  <Upload className="mr-2 h-3.5 w-3.5" /> Import calendar (.ics)
+                  <Upload className="mr-2 h-3.5 w-3.5" /> Import calendar (.ics / .zip)
                 </DropdownMenuItem>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
