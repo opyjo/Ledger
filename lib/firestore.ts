@@ -9,7 +9,7 @@ import {
   writeBatch,
 } from "firebase/firestore";
 import { db } from "./firebase";
-import type { Category, Event, Settings } from "./types";
+import type { Category, Event, Settings, Todo } from "./types";
 
 export function settingsDocRef(userId: string) {
   return doc(db, "users", userId, "settings", "preferences");
@@ -29,6 +29,14 @@ export function eventDocRef(userId: string, eventId: string) {
 
 export function categoryDocRef(userId: string, categoryId: string) {
   return doc(db, "users", userId, "categories", categoryId);
+}
+
+export function todosCollectionRef(userId: string) {
+  return collection(db, "users", userId, "todos");
+}
+
+export function todoDocRef(userId: string, todoId: string) {
+  return doc(db, "users", userId, "todos", todoId);
 }
 
 export function subscribeToSettings(
@@ -97,6 +105,28 @@ export function subscribeToEvents(
   );
 }
 
+export function subscribeToTodos(
+  userId: string,
+  callback: (todos: Todo[]) => void,
+  onError?: (error: Error) => void
+) {
+  const ref = todosCollectionRef(userId);
+  return onSnapshot(
+    ref,
+    (snap) => {
+      const todos = snap.docs.map((d) => ({
+        id: d.id,
+        ...d.data(),
+      })) as Todo[];
+      callback(todos);
+    },
+    (error) => {
+      console.error("[firestore] todos listener error:", error);
+      onError?.(error);
+    }
+  );
+}
+
 export async function saveSettings(userId: string, settings: Settings) {
   await setDoc(settingsDocRef(userId), settings);
 }
@@ -132,6 +162,25 @@ export async function saveEvent(userId: string, event: Event) {
 
 export async function deleteEvent(userId: string, eventId: string) {
   await deleteDoc(eventDocRef(userId, eventId));
+}
+
+export async function saveTodo(userId: string, todo: Todo) {
+  // Firestore rejects `undefined` — coerce optional fields to null.
+  await setDoc(todoDocRef(userId, todo.id), {
+    userId,
+    title: todo.title,
+    done: todo.done,
+    dueDate: todo.dueDate || null,
+    categoryId: todo.categoryId || null,
+    notes: todo.notes || null,
+    completedAt: todo.completedAt ?? null,
+    createdAt: todo.createdAt,
+    updatedAt: todo.updatedAt,
+  });
+}
+
+export async function deleteTodo(userId: string, todoId: string) {
+  await deleteDoc(todoDocRef(userId, todoId));
 }
 
 export async function batchImport(

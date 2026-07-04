@@ -14,6 +14,7 @@ interface KeyboardShortcutsProps {
   onPrevMonth: () => void;
   onNextMonth: () => void;
   onOpenCommandPalette: () => void;
+  onSetView?: (view: "month" | "week" | "todos") => void;
 }
 
 export function useKeyboardShortcuts({
@@ -22,6 +23,7 @@ export function useKeyboardShortcuts({
   onPrevMonth,
   onNextMonth,
   onOpenCommandPalette,
+  onSetView,
 }: KeyboardShortcutsProps) {
   const [helpOpen, setHelpOpen] = useState(false);
 
@@ -60,6 +62,18 @@ export function useKeyboardShortcuts({
           e.preventDefault();
           onNextMonth();
           break;
+        case "1":
+          e.preventDefault();
+          onSetView?.("month");
+          break;
+        case "2":
+          e.preventDefault();
+          onSetView?.("week");
+          break;
+        case "3":
+          e.preventDefault();
+          onSetView?.("todos");
+          break;
         case "?":
           e.preventDefault();
           setHelpOpen(true);
@@ -69,7 +83,7 @@ export function useKeyboardShortcuts({
 
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [onAddEvent, onToday, onPrevMonth, onNextMonth, onOpenCommandPalette]);
+  }, [onAddEvent, onToday, onPrevMonth, onNextMonth, onOpenCommandPalette, onSetView]);
 
   return { helpOpen, setHelpOpen };
 }
@@ -79,6 +93,7 @@ const SHORTCUTS = [
   { key: "T", action: "Go to today" },
   { key: "←", action: "Previous month" },
   { key: "→", action: "Next month" },
+  { key: "1 / 2 / 3", action: "Month, week, or todos view" },
   { key: "Cmd/Ctrl + K", action: "Open command palette" },
   { key: "?", action: "Show keyboard shortcuts" },
 ];

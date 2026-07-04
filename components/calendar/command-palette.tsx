@@ -23,6 +23,7 @@ interface CommandPaletteProps {
   onPrevMonth: () => void;
   onNextMonth: () => void;
   onSelectDate: (date: Date) => void;
+  onGoToTodos: () => void;
 }
 
 export function CommandPalette({
@@ -34,6 +35,7 @@ export function CommandPalette({
   onPrevMonth,
   onNextMonth,
   onSelectDate,
+  onGoToTodos,
 }: CommandPaletteProps) {
   const { events, categories } = useData();
   const { logout } = useAuth();
@@ -81,6 +83,7 @@ export function CommandPalette({
         <CommandGroup heading="Actions">
           <CommandItem onSelect={handleAddEvent}>Add new event</CommandItem>
           <CommandItem onSelect={handleToday}>Go to today</CommandItem>
+          <CommandItem onSelect={() => { onOpenChange(false); onGoToTodos(); }}>Go to todos</CommandItem>
           <CommandItem onSelect={handlePrevMonth}>Previous month</CommandItem>
           <CommandItem onSelect={handleNextMonth}>Next month</CommandItem>
           <CommandItem onSelect={handleOpenSettings}>Open settings</CommandItem>

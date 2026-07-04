@@ -23,6 +23,19 @@ export interface Event {
   updatedAt: number;
 }
 
+export interface Todo {
+  id: string;
+  userId: string;
+  title: string;
+  done: boolean;
+  dueDate?: string; // ISO date YYYY-MM-DD
+  categoryId?: string;
+  notes?: string;
+  completedAt?: number;
+  createdAt: number;
+  updatedAt: number;
+}
+
 export interface Settings {
   sound: boolean;
   defaultReminder: number;

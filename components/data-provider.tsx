@@ -11,14 +11,17 @@ import {
   subscribeToSettings,
   subscribeToCategories,
   subscribeToEvents,
+  subscribeToTodos,
   saveSettings as saveSettingsDb,
   saveCategory as saveCategoryDb,
   deleteCategory as deleteCategoryDb,
   saveEvent as saveEventDb,
   deleteEvent as deleteEventDb,
+  saveTodo as saveTodoDb,
+  deleteTodo as deleteTodoDb,
   batchImport as batchImportDb,
 } from "@/lib/firestore";
-import type { Category, Event, Settings } from "@/lib/types";
+import type { Category, Event, Settings, Todo } from "@/lib/types";
 
 const DEFAULT_CATEGORIES: Category[] = [
   { id: "work", name: "Work", color: "#1B2A4A" },
@@ -36,12 +39,15 @@ interface DataContextValue {
   settings: Settings;
   categories: Category[];
   events: Event[];
+  todos: Todo[];
   loading: boolean;
   saveSettings: (s: Settings) => Promise<void>;
   saveCategory: (c: Category) => Promise<void>;
   deleteCategory: (id: string) => Promise<void>;
   saveEvent: (e: Event) => Promise<void>;
   deleteEvent: (id: string) => Promise<void>;
+  saveTodo: (t: Todo) => Promise<void>;
+  deleteTodo: (id: string) => Promise<void>;
   batchImport: (categories: Category[], events: Event[], settings: Settings) => Promise<void>;
 }
 
@@ -57,6 +63,7 @@ export function DataProvider({
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
   const [categories, setCategories] = useState<Category[]>(DEFAULT_CATEGORIES);
   const [events, setEvents] = useState<Event[]>([]);
+  const [todos, setTodos] = useState<Todo[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -84,10 +91,13 @@ export function DataProvider({
       }
     );
 
+    const unsubTodos = subscribeToTodos(userId, setTodos);
+
     return () => {
       unsubSettings();
       unsubCategories();
       unsubEvents();
+      unsubTodos();
     };
   }, [userId]);
 
@@ -95,12 +105,15 @@ export function DataProvider({
     settings,
     categories,
     events,
+    todos,
     loading,
     saveSettings: (s) => saveSettingsDb(userId, s),
     saveCategory: (c) => saveCategoryDb(userId, c),
     deleteCategory: (id) => deleteCategoryDb(userId, id),
     saveEvent: (e) => saveEventDb(userId, e),
     deleteEvent: (id) => deleteEventDb(userId, id),
+    saveTodo: (t) => saveTodoDb(userId, t),
+    deleteTodo: (id) => deleteTodoDb(userId, id),
     batchImport: (cats, evs, sets) => batchImportDb(userId, cats, evs, sets),
   };
 

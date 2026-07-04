@@ -34,6 +34,7 @@ import { AgendaPanel } from "./agenda-panel";
 import { FiltersBar } from "./filters-bar";
 import { YearPicker } from "./year-picker";
 import { WeekView } from "./week-view";
+import { TodoPanel } from "./todo-panel";
 import { CalendarSkeleton } from "./loading-skeleton";
 import { CommandPalette } from "./command-palette";
 import { useKeyboardShortcuts, ShortcutsHelpDialog } from "./keyboard-shortcuts";
@@ -49,7 +50,7 @@ import { toast } from "sonner";
 
 export function CalendarPage() {
   const { user, logout } = useAuth();
-  const { events, categories, settings, batchImport, loading: dataLoading } = useData();
+  const { events, categories, settings, todos, batchImport, loading: dataLoading } = useData();
 
   const [viewDate, setViewDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -57,7 +58,7 @@ export function CalendarPage() {
   const [editingEventId, setEditingEventId] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
-  const [view, setView] = useState<"month" | "week">("month");
+  const [view, setView] = useState<"month" | "week" | "todos">("month");
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategoryIds, setActiveCategoryIds] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -91,6 +92,8 @@ export function CalendarPage() {
 
   const gridStart = startOfWeek(startOfMonth(viewDate), { weekStartsOn: 0 });
   const gridEnd = endOfWeek(endOfMonth(viewDate), { weekStartsOn: 0 });
+
+  const openTodoCount = useMemo(() => todos.filter((t) => !t.done).length, [todos]);
 
   const handlePrevMonth = () => {
     const d = new Date(viewDate);
@@ -214,6 +217,7 @@ export function CalendarPage() {
     onPrevMonth: handlePrevMonth,
     onNextMonth: handleNextMonth,
     onOpenCommandPalette: () => setCommandOpen(true),
+    onSetView: setView,
   });
 
   const handleToggleCategory = (id: string) => {
@@ -372,11 +376,15 @@ export function CalendarPage() {
           <main className="grid flex-1 gap-6 lg:grid-cols-[1.6fr_1fr] lg:items-start">
         <section className="rounded-2xl border-2 border-foreground bg-card p-5 shadow-sm">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-            <YearPicker viewDate={viewDate} onChange={setViewDate}>
-              <span className="cursor-pointer text-left font-serif text-2xl font-semibold text-foreground hover:opacity-70">
-                {monthLabel}
-              </span>
-            </YearPicker>
+            {view === "todos" ? (
+              <span className="text-left font-serif text-2xl font-semibold text-foreground">Todos</span>
+            ) : (
+              <YearPicker viewDate={viewDate} onChange={setViewDate}>
+                <span className="cursor-pointer text-left font-serif text-2xl font-semibold text-foreground hover:opacity-70">
+                  {monthLabel}
+                </span>
+              </YearPicker>
+            )}
             <div className="flex items-center gap-1.5">
               <div className="flex rounded-lg border border-line p-0.5">
                 <button
@@ -397,20 +405,38 @@ export function CalendarPage() {
                 >
                   Week
                 </button>
+                <button
+                  onClick={() => setView("todos")}
+                  className={[
+                    "rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
+                    view === "todos" ? "bg-foreground text-primary-foreground" : "text-muted-foreground hover:bg-panel",
+                  ].join(" ")}
+                >
+                  Todos
+                  {openTodoCount > 0 && (
+                    <span className="ml-1 font-mono text-[10px] opacity-70">{openTodoCount}</span>
+                  )}
+                </button>
               </div>
-              <Button variant="outline" size="icon" onClick={handlePrevMonth} className="h-8 w-8 rounded-lg border-line">
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <Button variant="outline" size="sm" onClick={handleToday} className="h-8 rounded-lg border-line text-xs">
-                Today
-              </Button>
-              <Button variant="outline" size="icon" onClick={handleNextMonth} className="h-8 w-8 rounded-lg border-line">
-                <ChevronRight className="h-4 w-4" />
-              </Button>
+              {view !== "todos" && (
+                <>
+                  <Button variant="outline" size="icon" onClick={handlePrevMonth} className="h-8 w-8 rounded-lg border-line">
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={handleToday} className="h-8 rounded-lg border-line text-xs">
+                    Today
+                  </Button>
+                  <Button variant="outline" size="icon" onClick={handleNextMonth} className="h-8 w-8 rounded-lg border-line">
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </>
+              )}
             </div>
           </div>
 
-          {view === "month" ? (
+          {view === "todos" ? (
+            <TodoPanel searchQuery={searchQuery} activeCategoryIds={activeCategoryIds} />
+          ) : view === "month" ? (
             <CalendarGrid
               viewDate={viewDate}
               selectedDate={selectedDate}
@@ -467,6 +493,7 @@ export function CalendarPage() {
           setViewDate(date);
           setSelectedDate(date);
         }}
+        onGoToTodos={() => setView("todos")}
       />
 
       <ShortcutsHelpDialog open={helpOpen} onOpenChange={setHelpOpen} />
