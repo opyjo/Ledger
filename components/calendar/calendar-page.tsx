@@ -20,6 +20,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -271,25 +272,29 @@ export function CalendarPage() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-60">
-              <DropdownMenuLabel className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-                Backup
-              </DropdownMenuLabel>
-              <DropdownMenuItem onClick={handleExport} className="text-xs">
-                <Download className="mr-2 h-3.5 w-3.5" /> Export backup (.json)
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleImportTrigger} className="text-xs">
-                <Upload className="mr-2 h-3.5 w-3.5" /> Import backup (.json)
-              </DropdownMenuItem>
+              <DropdownMenuGroup>
+                <DropdownMenuLabel className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+                  Backup
+                </DropdownMenuLabel>
+                <DropdownMenuItem onClick={handleExport} className="text-xs">
+                  <Download className="mr-2 h-3.5 w-3.5" /> Export backup (.json)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleImportTrigger} className="text-xs">
+                  <Upload className="mr-2 h-3.5 w-3.5" /> Import backup (.json)
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
               <DropdownMenuSeparator />
-              <DropdownMenuLabel className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-                Calendar file
-              </DropdownMenuLabel>
-              <DropdownMenuItem onClick={handleExportIcs} className="text-xs">
-                <Download className="mr-2 h-3.5 w-3.5" /> Export calendar (.ics)
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleImportIcsTrigger} className="text-xs">
-                <Upload className="mr-2 h-3.5 w-3.5" /> Import calendar (.ics)
-              </DropdownMenuItem>
+              <DropdownMenuGroup>
+                <DropdownMenuLabel className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+                  Calendar file
+                </DropdownMenuLabel>
+                <DropdownMenuItem onClick={handleExportIcs} className="text-xs">
+                  <Download className="mr-2 h-3.5 w-3.5" /> Export calendar (.ics)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleImportIcsTrigger} className="text-xs">
+                  <Upload className="mr-2 h-3.5 w-3.5" /> Import calendar (.ics)
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => setSettingsOpen(true)} className="text-xs">
                 <Settings className="mr-2 h-3.5 w-3.5" /> Settings
