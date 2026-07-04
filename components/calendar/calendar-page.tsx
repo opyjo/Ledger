@@ -125,9 +125,9 @@ export function CalendarPage() {
   return (
     <div className="app mx-auto flex min-h-screen max-w-6xl flex-col px-5 py-7">
       <header className="mb-6 flex flex-wrap items-baseline justify-between gap-4 border-b-2 border-foreground pb-4">
-        <div className="flex items-baseline gap-3">
+        <div className="flex flex-wrap items-baseline gap-3">
           <h1 className="text-3xl font-bold tracking-tight text-foreground">Ledger</h1>
-          <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
+          <span className="hidden font-mono text-xs uppercase tracking-widest text-muted-foreground sm:inline">
             a calendar kept your way
           </span>
         </div>
@@ -233,7 +233,7 @@ export function CalendarPage() {
         />
       </main>
 
-      <footer className="mt-8 border-t border-line pt-4 font-mono text-xs leading-relaxed text-muted-foreground">
+      <footer className="mt-8 break-words border-t border-line pt-4 font-mono text-xs leading-relaxed text-muted-foreground">
         Signed in as {user?.email}. Events are stored in your Firebase account and sync across devices.
       </footer>
 

@@ -156,7 +156,7 @@ export function EventForm({ open, onOpenChange, selectedDate, editingEventId }: 
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
               <Label htmlFor="date" className="text-xs uppercase tracking-wider text-muted-foreground">
                 Date
@@ -171,7 +171,7 @@ export function EventForm({ open, onOpenChange, selectedDate, editingEventId }: 
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
               <Label htmlFor="endTime" className="text-xs uppercase tracking-wider text-muted-foreground">
                 End time

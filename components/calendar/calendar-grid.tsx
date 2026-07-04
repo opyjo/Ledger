@@ -43,11 +43,11 @@ export function CalendarGrid({
           const dayEvents = eventsForDay(events, day, categories);
 
           return (
-            <button
+              <button
               key={day.toISOString()}
               onClick={() => onSelectDate(day)}
               className={[
-                "group flex aspect-square flex-col justify-between rounded-lg border p-2 text-left transition-colors",
+                "group flex min-h-[44px] flex-col justify-between rounded-lg border p-1.5 text-left transition-colors sm:aspect-square sm:p-2",
                 isMuted ? "opacity-35" : "",
                 isSelected
                   ? "border-2 border-foreground bg-panel"
@@ -57,7 +57,7 @@ export function CalendarGrid({
             >
               <span
                 className={[
-                  "font-mono text-sm font-medium",
+                  "font-mono text-xs font-medium sm:text-sm",
                   isToday ? "font-bold text-rust" : "text-foreground",
                 ].join(" ")}
               >
@@ -69,7 +69,7 @@ export function CalendarGrid({
                   return (
                     <span
                       key={ev.id}
-                      className="h-1.5 w-1.5 rounded-full"
+                      className="h-1 w-1 rounded-full sm:h-1.5 sm:w-1.5"
                       style={{ backgroundColor: cat.color }}
                     />
                   );
