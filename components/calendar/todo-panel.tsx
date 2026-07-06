@@ -111,10 +111,18 @@ export function TodoPanel({ searchQuery, activeCategoryIds }: TodoPanelProps) {
           ref={quickAddRef}
           value={quickTitle}
           onChange={(e) => setQuickTitle(e.target.value)}
-          placeholder="Add a todo and press Enter"
+          placeholder="Add a todo"
           aria-label="Add a todo"
-          className="rounded-lg pl-9"
+          enterKeyHint="done"
+          className="h-10 rounded-lg pl-9 pr-16 sm:h-8"
         />
+        <button
+          type="submit"
+          disabled={!quickTitle.trim()}
+          className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-md bg-foreground px-2.5 py-1 font-mono text-[11px] uppercase tracking-wider text-primary-foreground transition-colors hover:bg-rust disabled:pointer-events-none disabled:opacity-0"
+        >
+          Add
+        </button>
       </form>
 
       {isEmpty ? (

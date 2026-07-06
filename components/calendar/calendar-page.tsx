@@ -63,6 +63,7 @@ export function CalendarPage() {
   const [activeCategoryIds, setActiveCategoryIds] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const icsInputRef = useRef<HTMLInputElement>(null);
+  const agendaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (categories.length && activeCategoryIds.length === 0) {
@@ -111,6 +112,17 @@ export function CalendarPage() {
     const now = new Date();
     setViewDate(now);
     setSelectedDate(now);
+  };
+
+  // Below lg the agenda stacks under the grid, so a tap on a day would
+  // otherwise give no visible feedback — bring the agenda into view.
+  const handleSelectDate = (date: Date) => {
+    setSelectedDate(date);
+    if (window.matchMedia("(max-width: 1023px)").matches) {
+      requestAnimationFrame(() =>
+        agendaRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+      );
+    }
   };
 
   const handleAddEvent = () => {
@@ -390,7 +402,7 @@ export function CalendarPage() {
                 <button
                   onClick={() => setView("month")}
                   className={[
-                    "rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
+                    "rounded-md px-3 py-1.5 text-xs font-medium transition-colors sm:px-2.5 sm:py-1",
                     view === "month" ? "bg-foreground text-primary-foreground" : "text-muted-foreground hover:bg-panel",
                   ].join(" ")}
                 >
@@ -399,7 +411,7 @@ export function CalendarPage() {
                 <button
                   onClick={() => setView("week")}
                   className={[
-                    "rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
+                    "rounded-md px-3 py-1.5 text-xs font-medium transition-colors sm:px-2.5 sm:py-1",
                     view === "week" ? "bg-foreground text-primary-foreground" : "text-muted-foreground hover:bg-panel",
                   ].join(" ")}
                 >
@@ -408,7 +420,7 @@ export function CalendarPage() {
                 <button
                   onClick={() => setView("todos")}
                   className={[
-                    "rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
+                    "rounded-md px-3 py-1.5 text-xs font-medium transition-colors sm:px-2.5 sm:py-1",
                     view === "todos" ? "bg-foreground text-primary-foreground" : "text-muted-foreground hover:bg-panel",
                   ].join(" ")}
                 >
@@ -420,13 +432,13 @@ export function CalendarPage() {
               </div>
               {view !== "todos" && (
                 <>
-                  <Button variant="outline" size="icon" onClick={handlePrevMonth} className="h-8 w-8 rounded-lg border-line">
+                  <Button variant="outline" size="icon" onClick={handlePrevMonth} className="h-9 w-9 rounded-lg border-line sm:h-8 sm:w-8">
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
-                  <Button variant="outline" size="sm" onClick={handleToday} className="h-8 rounded-lg border-line text-xs">
+                  <Button variant="outline" size="sm" onClick={handleToday} className="h-9 rounded-lg border-line text-xs sm:h-8">
                     Today
                   </Button>
-                  <Button variant="outline" size="icon" onClick={handleNextMonth} className="h-8 w-8 rounded-lg border-line">
+                  <Button variant="outline" size="icon" onClick={handleNextMonth} className="h-9 w-9 rounded-lg border-line sm:h-8 sm:w-8">
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                 </>
@@ -440,7 +452,7 @@ export function CalendarPage() {
             <CalendarGrid
               viewDate={viewDate}
               selectedDate={selectedDate}
-              onSelectDate={setSelectedDate}
+              onSelectDate={handleSelectDate}
               gridStart={gridStart}
               gridEnd={gridEnd}
               searchQuery={searchQuery}
@@ -450,20 +462,22 @@ export function CalendarPage() {
             <WeekView
               viewDate={viewDate}
               selectedDate={selectedDate}
-              onSelectDate={setSelectedDate}
+              onSelectDate={handleSelectDate}
               searchQuery={searchQuery}
               activeCategoryIds={activeCategoryIds}
             />
           )}
         </section>
 
-        <AgendaPanel
-          selectedDate={selectedDate}
-          onAddEvent={handleAddEvent}
-          onEditEvent={handleEditEvent}
-          searchQuery={searchQuery}
-          activeCategoryIds={activeCategoryIds}
-        />
+        <div ref={agendaRef} className="scroll-mt-4">
+          <AgendaPanel
+            selectedDate={selectedDate}
+            onAddEvent={handleAddEvent}
+            onEditEvent={handleEditEvent}
+            searchQuery={searchQuery}
+            activeCategoryIds={activeCategoryIds}
+          />
+        </div>
       </main>
         </>
       )}

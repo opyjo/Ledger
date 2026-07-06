@@ -82,7 +82,7 @@ export function AgendaPanel({ selectedDate, onAddEvent, onEditEvent, searchQuery
                   variant="ghost"
                   size="icon"
                   aria-label={`Edit ${ev.title}`}
-                  className="h-7 w-7 opacity-60 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
+                  className="h-9 w-9 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 sm:h-7 sm:w-7 sm:opacity-60"
                   onClick={() => onEditEvent(ev.id)}
                 >
                   <Pencil className="h-3.5 w-3.5" />

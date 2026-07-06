@@ -1,6 +1,6 @@
 "use client";
 
-import { Pencil } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import { differenceInCalendarDays } from "date-fns";
 import { useData } from "@/components/data-provider";
 import { parseLocalDate } from "@/lib/recurrence";
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import type { Todo } from "@/lib/types";
+import { toast } from "sonner";
 
 interface TodoItemProps {
   todo: Todo;
@@ -33,7 +34,7 @@ function dueLabel(dueDate: string): { text: string; overdue: boolean } {
 }
 
 export function TodoItem({ todo, onEdit }: TodoItemProps) {
-  const { categories, saveTodo } = useData();
+  const { categories, saveTodo, deleteTodo } = useData();
   const cat = todo.categoryId ? categories.find((c) => c.id === todo.categoryId) : undefined;
   const due = todo.dueDate && !todo.done ? dueLabel(todo.dueDate) : null;
 
@@ -43,6 +44,18 @@ export function TodoItem({ todo, onEdit }: TodoItemProps) {
       done,
       completedAt: done ? Date.now() : undefined,
       updatedAt: Date.now(),
+    });
+  };
+
+  const handleDelete = () => {
+    const deleted = { ...todo };
+    deleteTodo(todo.id).then(() => {
+      toast("Todo deleted.", {
+        action: {
+          label: "Undo",
+          onClick: () => saveTodo(deleted),
+        },
+      });
     });
   };
 
@@ -61,7 +74,7 @@ export function TodoItem({ todo, onEdit }: TodoItemProps) {
         checked={todo.done}
         onCheckedChange={(checked) => handleToggle(checked === true)}
         aria-label={todo.done ? `Mark "${todo.title}" as not done` : `Mark "${todo.title}" as done`}
-        className="mt-0.5 size-5 rounded-full"
+        className="mt-0.5 size-6 rounded-full sm:size-5"
       />
       <div className="min-w-0 flex-1">
         <div
@@ -83,11 +96,22 @@ export function TodoItem({ todo, onEdit }: TodoItemProps) {
         variant="ghost"
         size="icon"
         aria-label={`Edit ${todo.title}`}
-        className="h-7 w-7 opacity-60 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
+        className="h-9 w-9 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 sm:h-7 sm:w-7 sm:opacity-60"
         onClick={() => onEdit(todo.id)}
       >
         <Pencil className="h-3.5 w-3.5" />
       </Button>
+      {todo.done && (
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label={`Delete ${todo.title}`}
+          className="h-9 w-9 text-muted-foreground transition-opacity hover:text-rust group-hover:opacity-100 focus-visible:opacity-100 sm:h-7 sm:w-7 sm:opacity-60"
+          onClick={handleDelete}
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </Button>
+      )}
     </div>
   );
 }
