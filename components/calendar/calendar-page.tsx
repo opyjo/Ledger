@@ -12,7 +12,10 @@ import {
   Bell,
   BellOff,
   MoreHorizontal,
+  Moon,
+  Sun,
 } from "lucide-react";
+import { useTheme } from "next-themes";
 import { startOfMonth, endOfMonth, startOfWeek, endOfWeek } from "date-fns";
 
 import { Button } from "@/components/ui/button";
@@ -50,6 +53,7 @@ import { toast } from "sonner";
 
 export function CalendarPage() {
   const { user, logout } = useAuth();
+  const { resolvedTheme, setTheme } = useTheme();
   const { events, categories, settings, todos, batchImport, loading: dataLoading } = useData();
 
   const [viewDate, setViewDate] = useState(new Date());
@@ -59,6 +63,27 @@ export function CalendarPage() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
   const [view, setView] = useState<"month" | "week" | "todos">("month");
+
+  // Restore the last-used view; first-time visitors on small screens get the
+  // week view, which fits a phone better than the 7-column month grid.
+  useEffect(() => {
+    const saved = localStorage.getItem("ledger:view");
+    if (saved === "month" || saved === "week" || saved === "todos") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setView(saved);
+    } else if (window.matchMedia("(max-width: 639px)").matches) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setView("week");
+    }
+  }, []);
+
+  // Persist on user-driven changes only (not in an effect: StrictMode re-runs
+  // mount effects, and a write effect would clobber the saved view between the
+  // restore effect's two runs).
+  const changeView = (v: "month" | "week" | "todos") => {
+    setView(v);
+    localStorage.setItem("ledger:view", v);
+  };
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategoryIds, setActiveCategoryIds] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -229,7 +254,7 @@ export function CalendarPage() {
     onPrevMonth: handlePrevMonth,
     onNextMonth: handleNextMonth,
     onOpenCommandPalette: () => setCommandOpen(true),
-    onSetView: setView,
+    onSetView: changeView,
   });
 
   const handleToggleCategory = (id: string) => {
@@ -249,14 +274,16 @@ export function CalendarPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <ThemeToggle />
+          <div className="hidden sm:block">
+            <ThemeToggle />
+          </div>
 
           {mounted && notifPermission !== "unsupported" && (
             <Button
               variant="outline"
               size="sm"
               onClick={handleRequestNotif}
-              className="rounded-lg border-line text-xs"
+              className="hidden rounded-lg border-line text-xs sm:inline-flex"
             >
               {notifPermission === "granted" ? (
                 <>
@@ -303,6 +330,41 @@ export function CalendarPage() {
               <MoreHorizontal className="mr-1.5 h-3.5 w-3.5" /> More
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-60">
+              {/* Theme + alerts live in the header on sm+; fold them in here on phones */}
+              <DropdownMenuGroup className="sm:hidden">
+                <DropdownMenuItem
+                  onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+                  className="text-xs"
+                >
+                  {resolvedTheme === "dark" ? (
+                    <>
+                      <Sun className="mr-2 h-3.5 w-3.5" /> Light theme
+                    </>
+                  ) : (
+                    <>
+                      <Moon className="mr-2 h-3.5 w-3.5" /> Dark theme
+                    </>
+                  )}
+                </DropdownMenuItem>
+                {mounted && notifPermission !== "unsupported" && (
+                  <DropdownMenuItem onClick={handleRequestNotif} className="text-xs">
+                    {notifPermission === "granted" ? (
+                      <>
+                        <Bell className="mr-2 h-3.5 w-3.5" /> Alerts on
+                      </>
+                    ) : notifPermission === "denied" ? (
+                      <>
+                        <BellOff className="mr-2 h-3.5 w-3.5" /> Alerts blocked
+                      </>
+                    ) : (
+                      <>
+                        <Bell className="mr-2 h-3.5 w-3.5" /> Turn on alerts
+                      </>
+                    )}
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuSeparator />
+              </DropdownMenuGroup>
               <DropdownMenuGroup>
                 <DropdownMenuLabel className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
                   Backup
@@ -400,7 +462,7 @@ export function CalendarPage() {
             <div className="flex items-center gap-1.5">
               <div className="flex rounded-lg border border-line p-0.5">
                 <button
-                  onClick={() => setView("month")}
+                  onClick={() => changeView("month")}
                   className={[
                     "rounded-md px-3 py-1.5 text-xs font-medium transition-colors sm:px-2.5 sm:py-1",
                     view === "month" ? "bg-foreground text-primary-foreground" : "text-muted-foreground hover:bg-panel",
@@ -409,7 +471,7 @@ export function CalendarPage() {
                   Month
                 </button>
                 <button
-                  onClick={() => setView("week")}
+                  onClick={() => changeView("week")}
                   className={[
                     "rounded-md px-3 py-1.5 text-xs font-medium transition-colors sm:px-2.5 sm:py-1",
                     view === "week" ? "bg-foreground text-primary-foreground" : "text-muted-foreground hover:bg-panel",
@@ -418,7 +480,7 @@ export function CalendarPage() {
                   Week
                 </button>
                 <button
-                  onClick={() => setView("todos")}
+                  onClick={() => changeView("todos")}
                   className={[
                     "rounded-md px-3 py-1.5 text-xs font-medium transition-colors sm:px-2.5 sm:py-1",
                     view === "todos" ? "bg-foreground text-primary-foreground" : "text-muted-foreground hover:bg-panel",
@@ -507,7 +569,7 @@ export function CalendarPage() {
           setViewDate(date);
           setSelectedDate(date);
         }}
-        onGoToTodos={() => setView("todos")}
+        onGoToTodos={() => changeView("todos")}
       />
 
       <ShortcutsHelpDialog open={helpOpen} onOpenChange={setHelpOpen} />

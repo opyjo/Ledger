@@ -1,9 +1,9 @@
 "use client";
 
-import { Flag, Pencil, Trash2 } from "lucide-react";
+import { ArrowRight, Flag, Pencil, Trash2 } from "lucide-react";
 import { differenceInCalendarDays } from "date-fns";
 import { useData } from "@/components/data-provider";
-import { parseLocalDate } from "@/lib/recurrence";
+import { formatDate, parseLocalDate } from "@/lib/recurrence";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
@@ -15,6 +15,8 @@ const PRIORITY_META: Record<TodoPriority, { label: string; className: string }> 
   medium: { label: "Med", className: "text-amber-600 dark:text-amber-500" },
   low: { label: "Low", className: "text-muted-foreground" },
 };
+
+const PRIORITY_CYCLE: (TodoPriority | undefined)[] = [undefined, "low", "medium", "high"];
 
 interface TodoItemProps {
   todo: Todo;
@@ -44,6 +46,16 @@ export function TodoItem({ todo, onEdit }: TodoItemProps) {
   const cat = todo.categoryId ? categories.find((c) => c.id === todo.categoryId) : undefined;
   const due = todo.dueDate && !todo.done ? dueLabel(todo.dueDate) : null;
   const priority = todo.priority && !todo.done ? PRIORITY_META[todo.priority] : null;
+
+  const handleCyclePriority = () => {
+    const idx = PRIORITY_CYCLE.indexOf(todo.priority || undefined);
+    const next = PRIORITY_CYCLE[(idx + 1) % PRIORITY_CYCLE.length];
+    saveTodo({ ...todo, priority: next, updatedAt: Date.now() });
+  };
+
+  const handleMoveToToday = () => {
+    saveTodo({ ...todo, dueDate: formatDate(new Date()), updatedAt: Date.now() });
+  };
 
   const handleToggle = (done: boolean) => {
     saveTodo({
@@ -92,16 +104,34 @@ export function TodoItem({ todo, onEdit }: TodoItemProps) {
         >
           {todo.title}
         </div>
-        {(priority || due) && (
-          <div className="flex items-center gap-2 font-mono text-[11px]">
-            {priority && (
-              <span className={cn("flex items-center gap-1", priority.className)}>
-                <Flag className="h-3 w-3" />
-                {priority.label}
-              </span>
-            )}
+        {!todo.done && (
+          <div className="flex items-center gap-2.5 font-mono text-[11px]">
+            <button
+              type="button"
+              onClick={handleCyclePriority}
+              title="Change priority"
+              aria-label={`Priority: ${priority ? priority.label : "none"}. Change priority of ${todo.title}`}
+              className={cn(
+                "flex items-center gap-1 transition-colors",
+                priority ? priority.className : "text-muted-foreground/50 hover:text-foreground"
+              )}
+            >
+              <Flag className={cn("h-3 w-3", priority && "fill-current")} />
+              {priority?.label}
+            </button>
             {due && (
               <span className={due.overdue ? "text-rust" : "text-muted-foreground"}>{due.text}</span>
+            )}
+            {due?.overdue && (
+              <button
+                type="button"
+                onClick={handleMoveToToday}
+                aria-label={`Reschedule ${todo.title} to today`}
+                className="flex items-center gap-0.5 text-muted-foreground underline-offset-2 transition-colors hover:text-foreground hover:underline"
+              >
+                <ArrowRight className="h-3 w-3" />
+                Today
+              </button>
             )}
           </div>
         )}

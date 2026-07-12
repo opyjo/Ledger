@@ -6,9 +6,43 @@ import { useData } from "@/components/data-provider";
 import { formatDate } from "@/lib/recurrence";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import type { Todo } from "@/lib/types";
+import type { Todo, TodoPriority } from "@/lib/types";
 import { TodoItem } from "./todo-item";
 import { TodoForm } from "./todo-form";
+import { toast } from "sonner";
+
+const PRIORITY_TOKENS: Record<string, TodoPriority> = {
+  "!high": "high",
+  "!h": "high",
+  "!medium": "medium",
+  "!med": "medium",
+  "!m": "medium",
+  "!low": "low",
+  "!l": "low",
+};
+
+// Pulls `!high` / `!med` / `!low`, `today` and `tomorrow` tokens out of a
+// quick-add entry so priority and due date can be set without the dialog.
+function parseQuickAdd(raw: string): { title: string; priority?: TodoPriority; dueDate?: string } {
+  let priority: TodoPriority | undefined;
+  let dueDate: string | undefined;
+  const rest: string[] = [];
+  for (const token of raw.trim().split(/\s+/)) {
+    const lower = token.toLowerCase();
+    if (!priority && PRIORITY_TOKENS[lower]) {
+      priority = PRIORITY_TOKENS[lower];
+    } else if (!dueDate && lower === "today") {
+      dueDate = formatDate(new Date());
+    } else if (!dueDate && lower === "tomorrow") {
+      const d = new Date();
+      d.setDate(d.getDate() + 1);
+      dueDate = formatDate(d);
+    } else {
+      rest.push(token);
+    }
+  }
+  return { title: rest.join(" "), priority, dueDate };
+}
 
 interface TodoPanelProps {
   searchQuery: string;
@@ -23,7 +57,7 @@ interface TodoGroup {
 }
 
 export function TodoPanel({ searchQuery, activeCategoryIds }: TodoPanelProps) {
-  const { todos, saveTodo } = useData();
+  const { todos, saveTodo, deleteTodo } = useData();
   const [quickTitle, setQuickTitle] = useState("");
   const [todoFormOpen, setTodoFormOpen] = useState(false);
   const [editingTodoId, setEditingTodoId] = useState<string | null>(null);
@@ -92,7 +126,7 @@ export function TodoPanel({ searchQuery, activeCategoryIds }: TodoPanelProps) {
 
   const handleQuickAdd = (e: React.FormEvent) => {
     e.preventDefault();
-    const title = quickTitle.trim();
+    const { title, priority, dueDate } = parseQuickAdd(quickTitle);
     if (!title) return;
     const now = Date.now();
     saveTodo({
@@ -100,11 +134,25 @@ export function TodoPanel({ searchQuery, activeCategoryIds }: TodoPanelProps) {
       userId: "",
       title,
       done: false,
+      priority,
+      dueDate,
       createdAt: now,
       updatedAt: now,
     });
     setQuickTitle("");
     quickAddRef.current?.focus();
+  };
+
+  const handleClearCompleted = () => {
+    const snapshot = doneTodos.map((t) => ({ ...t }));
+    Promise.all(snapshot.map((t) => deleteTodo(t.id))).then(() => {
+      toast(`${snapshot.length} completed todo${snapshot.length === 1 ? "" : "s"} cleared.`, {
+        action: {
+          label: "Undo",
+          onClick: () => snapshot.forEach((t) => saveTodo(t)),
+        },
+      });
+    });
   };
 
   const handleEdit = (id: string) => {
@@ -122,8 +170,8 @@ export function TodoPanel({ searchQuery, activeCategoryIds }: TodoPanelProps) {
           ref={quickAddRef}
           value={quickTitle}
           onChange={(e) => setQuickTitle(e.target.value)}
-          placeholder="Add a todo"
-          aria-label="Add a todo"
+          placeholder="Add a todo (try !high or tomorrow)"
+          aria-label="Add a todo. Use !high, !med or !low for priority and the words today or tomorrow for a due date"
           enterKeyHint="done"
           className="h-10 rounded-lg pl-9 pr-16 sm:h-8"
         />
@@ -165,14 +213,25 @@ export function TodoPanel({ searchQuery, activeCategoryIds }: TodoPanelProps) {
 
           {doneTodos.length > 0 && (
             <div>
-              <button
-                type="button"
-                onClick={() => setDoneOpen((o) => !o)}
-                className="mb-2 flex items-center gap-1 font-mono text-xs uppercase tracking-widest text-muted-foreground transition-colors hover:text-foreground"
-              >
-                {doneOpen ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-                Done · {doneTodos.length}
-              </button>
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <button
+                  type="button"
+                  onClick={() => setDoneOpen((o) => !o)}
+                  className="flex items-center gap-1 font-mono text-xs uppercase tracking-widest text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  {doneOpen ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+                  Done · {doneTodos.length}
+                </button>
+                {doneOpen && (
+                  <button
+                    type="button"
+                    onClick={handleClearCompleted}
+                    className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground transition-colors hover:text-rust"
+                  >
+                    Clear all
+                  </button>
+                )}
+              </div>
               {doneOpen && (
                 <div className="space-y-2">
                   {doneTodos.slice(0, 30).map((t) => (
