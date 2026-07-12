@@ -48,6 +48,9 @@ export function TodoPanel({ searchQuery, activeCategoryIds }: TodoPanelProps) {
 
   const { groups, doneTodos } = useMemo(() => {
     const open = filtered.filter((t) => !t.done);
+    const priorityRank = (t: Todo) =>
+      t.priority === "high" ? 0 : t.priority === "medium" ? 1 : t.priority === "low" ? 2 : 3;
+    const byPriority = (a: Todo, b: Todo) => priorityRank(a) - priorityRank(b);
     const byDue = (a: Todo, b: Todo) =>
       (a.dueDate || "").localeCompare(b.dueDate || "") || a.title.localeCompare(b.title);
     const groups: TodoGroup[] = [
@@ -55,22 +58,30 @@ export function TodoPanel({ searchQuery, activeCategoryIds }: TodoPanelProps) {
         key: "overdue",
         label: "Overdue",
         headerClass: "text-rust",
-        todos: open.filter((t) => t.dueDate && t.dueDate < todayStr).sort(byDue),
+        todos: open
+          .filter((t) => t.dueDate && t.dueDate < todayStr)
+          .sort((a, b) => byPriority(a, b) || byDue(a, b)),
       },
       {
         key: "today",
         label: "Today",
-        todos: open.filter((t) => t.dueDate === todayStr).sort((a, b) => a.createdAt - b.createdAt),
+        todos: open
+          .filter((t) => t.dueDate === todayStr)
+          .sort((a, b) => byPriority(a, b) || a.createdAt - b.createdAt),
       },
       {
         key: "upcoming",
         label: "Upcoming",
-        todos: open.filter((t) => t.dueDate && t.dueDate > todayStr).sort(byDue),
+        todos: open
+          .filter((t) => t.dueDate && t.dueDate > todayStr)
+          .sort((a, b) => byPriority(a, b) || byDue(a, b)),
       },
       {
         key: "nodate",
         label: "No date",
-        todos: open.filter((t) => !t.dueDate).sort((a, b) => b.createdAt - a.createdAt),
+        todos: open
+          .filter((t) => !t.dueDate)
+          .sort((a, b) => byPriority(a, b) || b.createdAt - a.createdAt),
       },
     ];
     const doneTodos = filtered

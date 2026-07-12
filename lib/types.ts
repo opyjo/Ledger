@@ -23,12 +23,15 @@ export interface Event {
   updatedAt: number;
 }
 
+export type TodoPriority = "high" | "medium" | "low";
+
 export interface Todo {
   id: string;
   userId: string;
   title: string;
   done: boolean;
   dueDate?: string; // ISO date YYYY-MM-DD
+  priority?: TodoPriority;
   categoryId?: string;
   notes?: string;
   completedAt?: number;

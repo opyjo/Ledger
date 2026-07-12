@@ -1,14 +1,20 @@
 "use client";
 
-import { Pencil, Trash2 } from "lucide-react";
+import { Flag, Pencil, Trash2 } from "lucide-react";
 import { differenceInCalendarDays } from "date-fns";
 import { useData } from "@/components/data-provider";
 import { parseLocalDate } from "@/lib/recurrence";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
-import type { Todo } from "@/lib/types";
+import type { Todo, TodoPriority } from "@/lib/types";
 import { toast } from "sonner";
+
+const PRIORITY_META: Record<TodoPriority, { label: string; className: string }> = {
+  high: { label: "High", className: "text-rust" },
+  medium: { label: "Med", className: "text-amber-600 dark:text-amber-500" },
+  low: { label: "Low", className: "text-muted-foreground" },
+};
 
 interface TodoItemProps {
   todo: Todo;
@@ -37,6 +43,7 @@ export function TodoItem({ todo, onEdit }: TodoItemProps) {
   const { categories, saveTodo, deleteTodo } = useData();
   const cat = todo.categoryId ? categories.find((c) => c.id === todo.categoryId) : undefined;
   const due = todo.dueDate && !todo.done ? dueLabel(todo.dueDate) : null;
+  const priority = todo.priority && !todo.done ? PRIORITY_META[todo.priority] : null;
 
   const handleToggle = (done: boolean) => {
     saveTodo({
@@ -85,9 +92,17 @@ export function TodoItem({ todo, onEdit }: TodoItemProps) {
         >
           {todo.title}
         </div>
-        {due && (
-          <div className={cn("font-mono text-[11px]", due.overdue ? "text-rust" : "text-muted-foreground")}>
-            {due.text}
+        {(priority || due) && (
+          <div className="flex items-center gap-2 font-mono text-[11px]">
+            {priority && (
+              <span className={cn("flex items-center gap-1", priority.className)}>
+                <Flag className="h-3 w-3" />
+                {priority.label}
+              </span>
+            )}
+            {due && (
+              <span className={due.overdue ? "text-rust" : "text-muted-foreground"}>{due.text}</span>
+            )}
           </div>
         )}
         {todo.notes && <div className="mt-1 truncate text-xs text-muted-foreground">{todo.notes}</div>}

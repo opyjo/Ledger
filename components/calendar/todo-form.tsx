@@ -10,15 +10,23 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useData } from "@/components/data-provider";
-import type { Todo } from "@/lib/types";
+import type { Todo, TodoPriority } from "@/lib/types";
 import { toast } from "sonner";
 
 const formSchema = z.object({
   title: z.string().min(1, "Title is required"),
   dueDate: z.string().optional(),
+  priority: z.string(),
   categoryId: z.string(),
   notes: z.string().optional(),
 });
+
+const PRIORITY_OPTIONS: { value: string; label: string }[] = [
+  { value: "", label: "None" },
+  { value: "low", label: "Low" },
+  { value: "medium", label: "Medium" },
+  { value: "high", label: "High" },
+];
 
 type FormValues = z.infer<typeof formSchema>;
 
@@ -38,7 +46,7 @@ export function TodoForm({ open, onOpenChange, editingTodoId }: TodoFormProps) {
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: { title: "", dueDate: "", categoryId: "", notes: "" },
+    defaultValues: { title: "", dueDate: "", priority: "", categoryId: "", notes: "" },
   });
 
   useEffect(() => {
@@ -47,16 +55,18 @@ export function TodoForm({ open, onOpenChange, editingTodoId }: TodoFormProps) {
         form.reset({
           title: editingTodo.title,
           dueDate: editingTodo.dueDate || "",
+          priority: editingTodo.priority || "",
           categoryId: editingTodo.categoryId || "",
           notes: editingTodo.notes || "",
         });
       } else {
-        form.reset({ title: "", dueDate: "", categoryId: "", notes: "" });
+        form.reset({ title: "", dueDate: "", priority: "", categoryId: "", notes: "" });
       }
     }
   }, [open, editingTodo, form]);
 
   const selectedCategoryId = form.watch("categoryId");
+  const selectedPriority = form.watch("priority");
 
   const onSubmit = (values: FormValues) => {
     const now = Date.now();
@@ -66,6 +76,7 @@ export function TodoForm({ open, onOpenChange, editingTodoId }: TodoFormProps) {
       title: values.title,
       done: editingTodo?.done || false,
       dueDate: values.dueDate || undefined,
+      priority: (values.priority as TodoPriority) || undefined,
       categoryId: values.categoryId || undefined,
       notes: values.notes || undefined,
       completedAt: editingTodo?.completedAt || undefined,
@@ -123,6 +134,27 @@ export function TodoForm({ open, onOpenChange, editingTodoId }: TodoFormProps) {
               Due date
             </Label>
             <Input id="todo-dueDate" type="date" {...form.register("dueDate")} className="mt-1 rounded-lg" />
+          </div>
+
+          <div>
+            <Label className="text-xs uppercase tracking-wider text-muted-foreground">Priority</Label>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {PRIORITY_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => form.setValue("priority", opt.value)}
+                  className={[
+                    "rounded-lg border px-3 py-1.5 font-mono text-[11px] uppercase tracking-wider transition-colors",
+                    selectedPriority === opt.value
+                      ? "border-foreground bg-foreground text-primary-foreground"
+                      : "border-line text-muted-foreground hover:border-foreground hover:text-foreground",
+                  ].join(" ")}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div>

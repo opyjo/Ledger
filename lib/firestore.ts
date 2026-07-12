@@ -171,6 +171,7 @@ export async function saveTodo(userId: string, todo: Todo) {
     title: todo.title,
     done: todo.done,
     dueDate: todo.dueDate || null,
+    priority: todo.priority || null,
     categoryId: todo.categoryId || null,
     notes: todo.notes || null,
     completedAt: todo.completedAt ?? null,
